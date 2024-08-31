@@ -1,26 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { io, Socket } from "socket.io-client";
-
-interface Message {
-  user: string;
-  text: string;
-}
+import { useState, useEffect } from 'react';
+import { io, Socket } from 'socket.io-client';
 
 let socket: Socket;
 
 export default function Chat() {
-  const [message, setMessage] = useState<string>("");
-  const [chat, setChat] = useState<Message[]>([]);
-  const [user, setUser] = useState<string>("");
+  const [message, setMessage] = useState<string>('');
+  const [chat, setChat] = useState<string[]>([]);
+  const [user, setUser] = useState<string>('');
 
   useEffect(() => {
     // Conectar al servidor Socket.io
     socket = io();
 
-    // Recibir mensajes de otros usuarios
-    socket.on("receive-message", (message: Message) => {
+    socket.on('connect', () => {
+      console.log('Connected to WebSocket server');
+    });
+
+    socket.on('receive-message', (message) => {
       setChat((prev) => [...prev, message]);
     });
 
@@ -32,11 +30,9 @@ export default function Chat() {
   const sendMessage = () => {
     if (!message || !user) return;
 
-    const msg: Message = { user, text: message };
-    // Enviar el mensaje al servidor
-    socket.emit("send-message", msg);
-    setChat((prev) => [...prev, msg]);
-    setMessage("");
+    socket.emit('send-message', `${user}: ${message}`);
+    setChat((prev) => [...prev, `${user}: ${message}`]);
+    setMessage('');
   };
 
   return (
@@ -53,7 +49,7 @@ export default function Chat() {
       <div className="h-64 border p-4 overflow-y-scroll">
         {chat.map((msg, index) => (
           <div key={index} className="my-2">
-            <strong>{msg.user}:</strong> {msg.text}
+            {msg}
           </div>
         ))}
       </div>
